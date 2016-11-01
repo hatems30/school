@@ -33,7 +33,7 @@ if ($_POST['action'] == 'update') {
     $name = $_POST['name'];
     $address = $_POST['address'];
     $birth_of_data = $_POST['birth_of_data'];
-    $school_id = $_POST['school_id'];
+    $school_id = $_POST['school'];
 
     $sqll = "UPDATE students SET name='" . $name . "', address='" . $address . "',birth_of_data='".$birth_of_data."',school_id='".$school_id."' WHERE id=$id";
     //echo $sqll . "<br>";
@@ -181,10 +181,30 @@ if ($_GET['action'] == 'del') {
                                 <label for="exampleInputPassword1">Birth Date :</label>
                                 <input type="text" name="birth_of_data" class="form-control" id="address" value="<?php echo $row['birth_of_data'] ?>" placeholder="">
                             </div>
-                            <div class="form-group">
+<!--                            <div class="form-group">
                                 <label for="exampleInputPassword1">School_id:</label>
                                 <input type="text" name="school_id" class="form-control" id="address" value="<?php echo $row['school_id'] ?>" placeholder="">
-                            </div>
+                            </div>-->
+                             <?php
+                            $sql = "SELECT
+                                schools.id as school_id,
+                                schools.`name` as school_name,
+                                schools.date_add,
+                                schools.last_update,
+                                schools.address
+                                FROM
+                                schools
+                                
+                                order by id desc";
+                            $resultOb = $conn->query($sql);
+                            ?>
+                            <label>School :</label>
+                            <select name="school" class="form-control">
+                                <?php while ($row = $resultOb->fetch_assoc()) { ?>
+                                    <option value="<?php echo $row['school_id'] ?>"> <?php echo $row['school_name'] ?> </option>
+                                <?php } ?>
+                            </select>
+                            
 
                             <button type="submit" name="action" value="update" class="btn btn-default">Update</button>
                         </form>
@@ -240,8 +260,6 @@ if ($_GET['action'] == 'del') {
                                 <?php while ($row = $resultOb->fetch_assoc()) { ?>
                                     <option value="<?php echo $row['school_id'] ?>"> <?php echo $row['school_name'] ?> </option>
                                 <?php } ?>
-
-
                             </select>
 
                             <button type="submit" name="action" value="add" class="btn btn-default">Submit</button>
