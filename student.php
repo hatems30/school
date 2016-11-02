@@ -272,23 +272,24 @@ if ($_GET['action'] == 'del') {
                 <div class="col-lg-6" >
                     <?php
                     $sql = "SELECT
+                            schools.`name`as school_name,
                             students.id,
-                            students.`name`,
+                            students.`name` ,
                             students.address,
                             students.birth_of_data,
-                            students.school_id,
                             students.date_add,
                             students.last_update
                             FROM
-                            students
+                            schools
+                            INNER JOIN students ON students.school_id = schools.id
                             order by id desc";
                     $resultOb = $conn->query($sql);
                     ?>
 
                     <table class="table table-striped" style="margin-top:30px;">
-                        <tr><th>Id</th><th>Name</th> <th>Address</th> <th>Birth Date</th><th>School Id</th><th>Edit</th><th>Delete</th></tr>
+                        <tr><th>Id</th><th>Name</th> <th>Address</th> <th>Birth Date</th><th>School Name</th><th>Edit</th><th>Delete</th></tr>
                         <?php while ($row = $resultOb->fetch_assoc()) { ?>
-                            <tr><td><?php echo $row['id'] ?></td><td><?php echo $row['name'] ?></td><td><?php echo $row['address'] ?></td> <td><?php echo $row['birth_of_data'] ?></td><td><?php echo $row['school_id'] ?></td><td><a href="?action=edit&id=<?php echo $row['id'] ?>" class="button" >Edit</a></td><td><a onclick="return confirm('Are you sure ?');" href="?action=del&id=<?php echo $row['id'] ?>" class="button" >Delete</a></td></tr>
+                            <tr><td><?php echo $row['id'] ?></td><td><?php echo $row['name'] ?></td><td><?php echo $row['address'] ?></td> <td><?php echo $row['birth_of_data'] ?></td><td><?php echo $row['school_name'] ?></td><td><a href="?action=edit&id=<?php echo $row['id'] ?>" class="button" >Edit</a></td><td><a onclick="return confirm('Are you sure ?');" href="?action=del&id=<?php echo $row['id'] ?>" class="button" >Delete</a></td></tr>
                         <?php } ?>
                     </table>
 
