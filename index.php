@@ -1,7 +1,0 @@
-<?php
-
-
-
-xcgdfdmnmnhnhm
-
-tttttttttttttttttt
