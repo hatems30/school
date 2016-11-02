@@ -167,7 +167,7 @@ if ($_GET['action'] == 'del') {
                 <div class="row">
                     <div class="col-lg-6" >
                         <form action="student.php"  method="Post" >
-                            <input type="text" name="id" class="form-control" id="name" value="<?php echo $row['id'] ?>" placeholder="">
+                            <input type="hidden" name="id" class="form-control" id="name" value="<?php echo $row['id'] ?>">
 
                             <div class="form-group">
                                 <label for="exampleInputEmail1">Name</label>
