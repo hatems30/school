@@ -205,7 +205,7 @@ if ($_GET['action'] == 'del') {
                                 <?php } ?>
                             </select>
                             
-
+                              <br/>
                             <button type="submit" name="action" value="update" class="btn btn-default">Update</button>
                         </form>
                     </div>
@@ -261,7 +261,7 @@ if ($_GET['action'] == 'del') {
                                     <option value="<?php echo $row['school_id'] ?>"> <?php echo $row['school_name'] ?> </option>
                                 <?php } ?>
                             </select>
-
+<br/>
                             <button type="submit" name="action" value="add" class="btn btn-default">Submit</button>
                         </form>
                     </div>
