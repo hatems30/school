@@ -9,14 +9,17 @@ if ($_POST['action'] == 'add') {
     if (empty($_POST['name'])) {
         $error = " empty name";
     } else {
+        
+       echo  md5(time());
+        $img = time().'_'.rand(1111,9999).'_'.$_FILES['file']['name'];
 
         $sql = "INSERT INTO student (name,address,date_birth,date_add,last_update,school_id,note,photo)
-VALUES ('" . $_REQUEST['name'] . "','" . $_REQUEST['address'] . "','" . $_REQUEST['date_birth'] . "','" . date('Y-m-d H:i:s') . "','" . date('Y-m-d H:i:s') . "','" . $_REQUEST['school_id'] . "','" . $_REQUEST['note'] . "','" . $_FILES['file']['name'] . "')";
+VALUES ('" . $_REQUEST['name'] . "','" . $_REQUEST['address'] . "','" . $_REQUEST['date_birth'] . "','" . date('Y-m-d H:i:s') . "','" . date('Y-m-d H:i:s') . "','" . $_REQUEST['school_id'] . "','" . $_REQUEST['note'] . "','" . $img . "')";
 
         $sucess = '';
         $error = '';
         if ($conn->query($sql) === TRUE) {
-              move_uploaded_file($_FILES["file"]["tmp_name"], "img/".$_FILES['file']['name']); 
+              move_uploaded_file($_FILES["file"]["tmp_name"], "img/".$img); 
 
             $sucess = "New record created successfully";
         } else {
@@ -33,10 +36,12 @@ if ($_POST['action'] == 'update') {
     $date_birth = $_POST['date_birth'];
     $school_id = $_POST['school_id'];
     $note = $_POST['note'];
-    $sqll = "UPDATE student SET name='" . $name . "', address='" . $address . "',date_birth='" . $date_birth . "',school_id='" . $school_id . "', note='" . $note ."', photo='" . $_FILES['file']['name'] . "' WHERE id=$id";
-    echo $sqll . "<br>";
+     
+        $img = time().'_'.rand(1111,9999).'_'.$_FILES['file']['name'];
+    $sqll = "UPDATE student SET name='" . $name . "', address='" . $address . "',date_birth='" . $date_birth . "',school_id='" . $school_id . "', note='" . $note ."', photo='" . $img . "' WHERE id=$id";
+  
     if ($conn->query($sqll) === TRUE) {
-         move_uploaded_file($_FILES["file"]["tmp_name"], "img/".$_FILES['file']['name']); 
+         move_uploaded_file($_FILES["file"]["tmp_name"], "img/".$img); 
         $sucess = "Record updated successfully";
     } else {
         $error = "Error updating record: " . $conn->error;
