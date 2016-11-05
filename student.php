@@ -6,19 +6,33 @@ if ($conn->connect_error) {
 }
 if ($_POST['action'] == 'add') {
 
+    
     if (empty($_POST['name'])) {
         $error = " empty name";
     } else {
         
+        
        echo  md5(time());
         $img = time().'_'.rand(1111,9999).'_'.$_FILES['file']['name'];
 
-        $sql = "INSERT INTO student (name,address,date_birth,date_add,last_update,school_id,note,photo)
-VALUES ('" . $_REQUEST['name'] . "','" . $_REQUEST['address'] . "','" . $_REQUEST['date_birth'] . "','" . date('Y-m-d H:i:s') . "','" . date('Y-m-d H:i:s') . "','" . $_REQUEST['school_id'] . "','" . $_REQUEST['note'] . "','" . $img . "')";
+        $sql = "INSERT INTO student (name,address,date_birth,date_add,last_update,school_id,note,photo,gender)
+VALUES ('" . $_REQUEST['name'] . "','" . $_REQUEST['address'] . "','" . $_REQUEST['date_birth'] . "','" . date('Y-m-d H:i:s') . "','" . date('Y-m-d H:i:s') . "','" . $_REQUEST['school_id'] . "','" . $_REQUEST['note'] . "','" . $img . "','" . $_REQUEST['gender'] . "')";
 
         $sucess = '';
         $error = '';
         if ($conn->query($sql) === TRUE) {
+            
+           $student_id =  $conn->insert_id;
+               foreach($_POST['language_id'] as $k=>$v){
+                     $sql = "INSERT INTO student_language (language_id,student_id) VALUES ('" . $_POST['language_id'][$k] . "','" . $student_id. "')";
+                $conn->query($sql);
+               }
+               foreach($_POST['hobby_id'] as $k=>$v){
+                     $sql = "INSERT INTO student_hobby (hobby_id,student_id) VALUES ('" . $_POST['hobby_id'][$k] . "','" . $student_id. "')";
+                $conn->query($sql);
+               }
+          
+          
               move_uploaded_file($_FILES["file"]["tmp_name"], "img/".$img); 
 
             $sucess = "New record created successfully";
@@ -170,13 +184,14 @@ if ($_GET['action'] == 'del') {
             student.date_add,
             student.last_update,
             student.note,
+            student.gender,
             student.school_id,
             schools.`name` as name1
 
                     FROM student
                 INNER JOIN schools ON student.school_id = schools.id  where student.id ='{$_GET['id']}'";
                 $resultOb = $conn->query($sql);
-                $row = $resultOb->fetch_assoc();
+                $student = $resultOb->fetch_assoc();
                 ?>
 
 
@@ -184,22 +199,22 @@ if ($_GET['action'] == 'del') {
                     <div class="col-lg-4">
                         <form action="student.php" method="post" enctype="multipart/form-data">
 
-                            <input name="id" type="hidden" value="<?php echo$row['id'] ?>" >
+                            <input name="id" type="hidden" value="<?php echo $student['id'] ?>" >
                             <div class="form-group">
                                 <label for="exampleInputEmail1">name</label>
-                                <input type="text" name="name" class="form-control" value="<?php echo $row['name'] ?>"  id="name" placeholder="">
+                                <input type="text" name="name" class="form-control" value="<?php echo $student['name'] ?>"  id="name" placeholder="">
                             </div>
                             <div class="form-group">
                                 <label for="exampleInputPassword1">address</label>
-                                <input type="text"  name="address" class="form-control" value="<?php echo $row['address'] ?> " id="address" placeholder="">
+                                <input type="text"  name="address" class="form-control" value="<?php echo $student['address'] ?> " id="address" placeholder="">
                             </div>
                             <div class="form-group">
                                 <label for="exampleInputPassword1">date_birth</label>
-                                <input type="text"  name="date_birth" class="form-control"value="<?php echo $row['date_birth'] ?>" id="date_birth" placeholder="">
+                                <input type="text"  name="date_birth" class="form-control"value="<?php echo $student['date_birth'] ?>" id="date_birth" placeholder="">
                             </div>
                             <div class="form-group">
                                 <label for="exampleInputPassword1">note</label>
-                                <textarea name="note" class="form-control" rows="3"><?php echo $row['note'] ?></textarea>
+                                <textarea name="note" class="form-control" rows="3"><?php echo $student['note'] ?></textarea>
 
                             </div>
                               <div class="form-group">
@@ -229,6 +244,71 @@ if ($_GET['action'] == 'del') {
                                     <?php } ?>
                                 </select>
                                 
+                            </div>
+                              <div class="form-group">
+                                <label for="exampleInputPassword1">note </label><br>
+                                <?php foreach(array('male','female') as $k=>$g): ?>
+                                <input name="gender" id="gender<?php echo $k ?>" type="radio"  value="<?php echo $g ?>" <?php echo ($g==$student['gender'])?"checked=\"checked\"":'' ?>> <label for="gender<?php echo $k ?>"><?php echo $g ?></label> <br>
+                             
+                                <?php endforeach; ?>
+                            </div>
+  <div class="form-group">
+                                <label for="exampleInputPassword1">Language</label>
+                                <?php
+                               
+                             
+                                $resultOb1 = $conn->query("select * from student_language where student_id='{$_GET['id']}'");
+                                $oldLanguages = array();
+                                while($l=$resultOb1->fetch_assoc()){
+                                   $oldLanguages[] = $l['language_id'];
+                                }
+                                $resultOb1 = $conn->query("select * from student_hobby where student_id='{$_GET['id']}'");
+                                $oldHobbies = array();
+                                while($l=$resultOb1->fetch_assoc()){
+                                   $oldHobbies[] = $l['hobby_id'];
+                                }
+                                
+                                $sql = "SELECT
+                                    `language`.id,
+                                    `language`.`name`,
+                                    `language`.date_add,
+                                    `language`.last_update
+                                    FROM
+                                    `language` order by name asc
+                                    ";
+                                $resultOb = $conn->query($sql);
+                                ?>
+                                  
+                                
+                                <label>School :</label>
+                                <select name="language_id[]" class="form-control" multiple="true">
+                                    <?php while ($row = $resultOb->fetch_assoc()) { ?>
+                                    <option value="<?php echo $row['id'] ?>" <?php echo (in_array($row['id'],$oldLanguages))? 'selected="selected"':''; ?>  > <?php echo $row['name'] ?> </option>
+                                    <?php } ?>
+                                </select>
+                                <br/>
+                            </div>
+
+                                <div class="form-group">
+                                <label for="exampleInputPassword1">Hobby</label>
+                                <?php
+                                $sql = "SELECT
+                                    hobby.id,
+                                    hobby.`name`,
+                                    hobby.date_add,
+                                    hobby.last_update
+                                    FROM
+                                    hobby
+
+                                    ";
+                                $resultOb = $conn->query($sql);
+                                ?>
+                                <label>School :</label><br/>
+                                    <?php while ($row = $resultOb->fetch_assoc()) { ?>
+                                <input type="checkbox" id="hobby<?php echo $row['id'] ?>" name="hobby_id[]" <?php echo (in_array($row['id'],$oldHobbies))? 'checked="checked"':''; ?>  value="<?php echo $row['id'] ?>"> <label for="hobby<?php echo $row['id'] ?>"> <?php echo $row['name'] ?> </label>
+                                <br/>
+                                    <?php } ?>
+                                <br/>
                             </div>
 
                             <button type="submit" name="action" value="update" class="btn btn-default">Update</button>
@@ -263,6 +343,7 @@ if ($_GET['action'] == 'del') {
                                 <label for="exampleInputPassword1">file</label>
 <input type="file" name="file" id="fileToUpload">                                
                             </div>
+                         
                             
                             <div class="form-group">
                                 <label for="exampleInputPassword1">school_id</label>
@@ -286,8 +367,56 @@ if ($_GET['action'] == 'del') {
                                 </select>
                                 <br/>
                             </div>
+                               <div class="form-group">
+                                <label for="exampleInputPassword1">note</label><br>
+                                <input name="gender" type="radio" value="male" checked="checked"> <label>Male</label> <br>
+                                <input name="gender" type="radio" value="female" > <label>Female</label> <br>
+                                
+                            </div>
+  <div class="form-group">
+                                <label for="exampleInputPassword1">Language</label>
+                                <?php
+                                $sql = "SELECT
+                                    `language`.id,
+                                    `language`.`name`,
+                                    `language`.date_add,
+                                    `language`.last_update
+                                    FROM
+                                    `language` order by name asc
+                                    ";
+                                $resultOb = $conn->query($sql);
+                                ?>
+                                <label>School :</label>
+                                <select name="language_id[]" class="form-control" multiple="true">
+                                    <?php while ($row = $resultOb->fetch_assoc()) { ?>
+                                        <option value="<?php echo $row['id'] ?>"> <?php echo $row['name'] ?> </option>
+                                    <?php } ?>
+                                </select>
+                                <br/>
+                            </div>
 
+                                <div class="form-group">
+                                <label for="exampleInputPassword1">Hobby</label>
+                                <?php
+                                $sql = "SELECT
+                                    hobby.id,
+                                    hobby.`name`,
+                                    hobby.date_add,
+                                    hobby.last_update
+                                    FROM
+                                    hobby
 
+                                    ";
+                                $resultOb = $conn->query($sql);
+                                ?>
+                                <label>School :</label><br/>
+                                    <?php while ($row = $resultOb->fetch_assoc()) { ?>
+                                <input type="checkbox" name="hobby_id[]"  value="<?php echo $row['id'] ?>"> <label> <?php echo $row['name'] ?> </label>
+                                <br/>
+                                    <?php } ?>
+                                <br/>
+                            </div>
+                            
                             <button type="submit" name="action" value="add" class="btn btn-default">Submit</button>
                         </form>
                     </div>
