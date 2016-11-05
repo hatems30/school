@@ -10,16 +10,20 @@ if ($_POST['action'] == 'add') {
         $error = " empty name";
     } else {
 
-        $sql = "INSERT INTO student (name,address,date_birth,date_add,last_update,school_id)
-VALUES ('" . $_REQUEST['name'] . "','" . $_REQUEST['address'] . "','" . $_REQUEST['date_birth'] . "','" . date('Y-m-d H:i:s') . "','" . date('Y-m-d H:i:s') . "','". $_REQUEST['school_id'] ."')";
+        $sql = "INSERT INTO student (name,address,date_birth,date_add,last_update,school_id,note,photo)
+VALUES ('" . $_REQUEST['name'] . "','" . $_REQUEST['address'] . "','" . $_REQUEST['date_birth'] . "','" . date('Y-m-d H:i:s') . "','" . date('Y-m-d H:i:s') . "','" . $_REQUEST['school_id'] . "','" . $_REQUEST['note'] . "','" . $_FILES['file']['name'] . "')";
 
         $sucess = '';
         $error = '';
         if ($conn->query($sql) === TRUE) {
+              move_uploaded_file($_FILES["file"]["tmp_name"], "img/".$_FILES['file']['name']); 
+
             $sucess = "New record created successfully";
         } else {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
+        
+
     }
 }
 if ($_POST['action'] == 'update') {
@@ -27,10 +31,12 @@ if ($_POST['action'] == 'update') {
     $address = $_POST['address'];
     $id = $_POST['id'];
     $date_birth = $_POST['date_birth'];
-    $school_id =$_POST['school_id'];
-    $sqll = "UPDATE student SET name='" . $name . "', address='" . $address . "',date_birth='" . $date_birth ."',school_id='" . $school_id . "' WHERE id=$id";
+    $school_id = $_POST['school_id'];
+    $note = $_POST['note'];
+    $sqll = "UPDATE student SET name='" . $name . "', address='" . $address . "',date_birth='" . $date_birth . "',school_id='" . $school_id . "', note='" . $note ."', photo='" . $_FILES['file']['name'] . "' WHERE id=$id";
     echo $sqll . "<br>";
     if ($conn->query($sqll) === TRUE) {
+         move_uploaded_file($_FILES["file"]["tmp_name"], "img/".$_FILES['file']['name']); 
         $sucess = "Record updated successfully";
     } else {
         $error = "Error updating record: " . $conn->error;
@@ -98,7 +104,7 @@ if ($_GET['action'] == 'del') {
 
     <body>
         <div class="container">
-                <!-- Static navbar -->
+            <!-- Static navbar -->
             <nav class="navbar navbar-default">
                 <div class="container-fluid">
                     <div class="navbar-header">
@@ -158,6 +164,7 @@ if ($_GET['action'] == 'del') {
             student.address,
             student.date_add,
             student.last_update,
+            student.note,
             student.school_id,
             schools.`name` as name1
 
@@ -170,9 +177,9 @@ if ($_GET['action'] == 'del') {
 
                 <div class="row">
                     <div class="col-lg-4">
-                        <form action="student.php" method="post">
+                        <form action="student.php" method="post" enctype="multipart/form-data">
 
-                            <input name="id" type="hidden" value="<?php echo$row['id']  ?>" ?>
+                            <input name="id" type="hidden" value="<?php echo$row['id'] ?>" >
                             <div class="form-group">
                                 <label for="exampleInputEmail1">name</label>
                                 <input type="text" name="name" class="form-control" value="<?php echo $row['name'] ?>"  id="name" placeholder="">
@@ -185,11 +192,38 @@ if ($_GET['action'] == 'del') {
                                 <label for="exampleInputPassword1">date_birth</label>
                                 <input type="text"  name="date_birth" class="form-control"value="<?php echo $row['date_birth'] ?>" id="date_birth" placeholder="">
                             </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">note</label>
+                                <textarea name="note" class="form-control" rows="3"><?php echo $row['note'] ?></textarea>
 
+                            </div>
+                              <div class="form-group">
+                                <label for="exampleInputPassword1">file</label>
+<input type="file" name="file" id="fileToUpload">                                
+                            </div>
                             <div class="form-group">
                                 <label for="exampleInputPassword1">school_id</label>
+                            
+
+                                <?php
+                                $sql = "SELECT
+                                schools.id as school_id,
+                                schools.`name` as school_name,
+                                schools.date_add,
+                                schools.last_update,
+                                schools.address
+                                FROM
+                                schools
+                                order by id desc";
+                                $resultOb = $conn->query($sql);
+                                ?>
+                                <label>School :</label>
+                                <select name="school_id" class="form-control">
+                                    <?php while ($row = $resultOb->fetch_assoc()) { ?>
+                                        <option value="<?php echo $row['school_id'] ?>"> <?php echo $row['school_name'] ?> </option>
+                                    <?php } ?>
+                                </select>
                                 
-                                <input type="text"  name="school_id" class="form-control"value="<?php echo $row['school_id'] ?>" id="school_id" placeholder="">
                             </div>
 
                             <button type="submit" name="action" value="update" class="btn btn-default">Update</button>
@@ -202,7 +236,7 @@ if ($_GET['action'] == 'del') {
 
                 <div class="row">
                     <div class="col-lg-6" >
-                        <form action=""  method="Post" >
+                        <form action=""  method="Post" enctype="multipart/form-data" >
                             <div class="form-group">
                                 <label for="exampleInputEmail1">Name</label>
                                 <input type="text" name="name" class="form-control" id="name" placeholder="">
@@ -215,10 +249,39 @@ if ($_GET['action'] == 'del') {
                                 <label for="exampleInputPassword1">birth_date</label>
                                 <input type="text" name="address" class="form-control" id="birth_date" placeholder="">
                             </div>
-                             <div class="form-group">
-                                <label for="exampleInputPassword1">school_id</label>
-                                <input type="text"  name="school_id" class="form-control"value="<?php echo $row['school_id'] ?>" id="school_id" placeholder="">
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">note</label>
+                                <textarea name="note" class="form-control" rows="3"></textarea>
+                                
                             </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">file</label>
+<input type="file" name="file" id="fileToUpload">                                
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">school_id</label>
+                                <?php
+                                $sql = "SELECT
+                                schools.id as school_id,
+                                schools.`name` as school_name,
+                                schools.date_add,
+                                schools.last_update,
+                                schools.address
+                                FROM
+                                schools
+                                order by id desc";
+                                $resultOb = $conn->query($sql);
+                                ?>
+                                <label>School :</label>
+                                <select name="school_id" class="form-control">
+                                    <?php while ($row = $resultOb->fetch_assoc()) { ?>
+                                        <option value="<?php echo $row['school_id'] ?>"> <?php echo $row['school_name'] ?> </option>
+                                    <?php } ?>
+                                </select>
+                                <br/>
+                            </div>
+
 
                             <button type="submit" name="action" value="add" class="btn btn-default">Submit</button>
                         </form>
@@ -238,17 +301,18 @@ if ($_GET['action'] == 'del') {
                          student.date_add,
                         student.last_update,
                         student.school_id,
+                        student.photo,
                         schools.`name` as name1
                        
                           FROM student
-                        INNER JOIN schools ON student.school_id = schools.id";
+                        INNER JOIN schools ON student.school_id = schools.id order by id desc";
                     $resultOb = $conn->query($sql);
                     ?>
 
                     <table class="table table-striped" style="margin-top:30px;">
                         <tr><th></th><th>Name</th> <th>Address</th> <th>date_birth</th><th>school_name</th><th></th></tr>
                         <?php while ($row = $resultOb->fetch_assoc()) { ?>
-                        <tr><td><?php echo $row['id'] ?></td><td><?php echo $row['name'] ?></td><td><?php echo $row['address'] ?></td><td><?php echo $row['date_birth'] ?></td><td><?php echo $row['school_id'] ?></td> <td><a href="?action=edit&id=<?php echo $row['id'] ?>" class="button" >Edit</a></td><td><a onclick="return confirm('Are you sure ?');" href="?action=del&id=<?php echo $row['id'] ?>" class="button" >Delete</a></td></tr>
+                            <tr><td><img src="img/<?php echo $row['photo'] ?>" alt="Smiley face" height="42" width="42"></td><td><?php echo $row['id'] ?></td><td><?php echo $row['name'] ?></td><td><?php echo $row['address'] ?></td><td><?php echo $row['date_birth'] ?></td><td><?php echo $row['name1'] ?></td> <td><a href="?action=edit&id=<?php echo $row['id'] ?>" class="button" >Edit</a></td><td><a onclick="return confirm('Are you sure ?');" href="?action=del&id=<?php echo $row['id'] ?>" class="button" >Delete</a></td></tr>
                         <?php } ?>
                     </table>
                     <table class="table table-striped">
